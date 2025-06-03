@@ -7,7 +7,7 @@ declare(strict_types=1);
 // default http implementation
 // in basic mode
 $dependencies = array(
-  "guzzlehttp/guzzle",
+    "guzzlehttp/guzzle",
 );
 
 // core packages are always installed
@@ -16,7 +16,7 @@ $dependencies = array(
 // to distinguish core packages from others
 $opentelemetry_core_packages = array(
   "open-telemetry/api",
-  "open-telemetry/sdk",
+  "solarwinds/apm",
   "open-telemetry/exporter-otlp",
   "open-telemetry/exporter-zipkin",
 );
@@ -215,7 +215,7 @@ function check_postconditions(array $output):bool {
   }
   if (!is_otel_module_exists()) {
     colorLog("\nERROR : opentelemetry extension has not been added to ini file", 'e');
-    false;
+    return false;
   }
   return true;
 }
@@ -320,6 +320,9 @@ function make_basic_setup($dependencies, $core_packages, $auto_packages, $stabil
   execute_command(make_composer_config_command(
     "--no-plugins allow-plugins.php-http/discovery false",
     ""), " 2>&1");
+  execute_command(make_composer_config_command(
+    "--no-plugins allow-plugins.yiisoft/yii2-composer false",
+    ""), " 2>&1");
 
     execute_command(make_composer_config_command(
         "minimum-stability dev",
@@ -328,7 +331,7 @@ function make_basic_setup($dependencies, $core_packages, $auto_packages, $stabil
     foreach ($dependencies as $dep) {
       execute_command(make_composer_require_command(
         $dep, 
-        "", 
+        ":^7.0",
         "--with-all-dependencies --no-interaction --no-update"), " 2>&1");
     }
     foreach ($core_packages as $package) {
@@ -407,6 +410,10 @@ function make_advanced_setup($core_packages, $auto_packages) {
 
   execute_command(make_composer_config_command(
     "--no-plugins allow-plugins.php-http/discovery false",
+    ""), " 2>&1");
+
+  execute_command(make_composer_config_command(
+    "--no-plugins allow-plugins.yiisoft/yii2-composer false",
     ""), " 2>&1");
 
   execute_command(make_composer_config_command(

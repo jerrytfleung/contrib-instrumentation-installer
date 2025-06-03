@@ -1,5 +1,5 @@
 {
-  "name": "open-telemetry/opentelemetry-instrumentation-installer",
+  "name": "jerrytfleung/opentelemetry-instrumentation-installer",
   "description": "OpenTelemetry auto-instrumentation installer",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "installer", "instrumentation"],
   "type": "library",
