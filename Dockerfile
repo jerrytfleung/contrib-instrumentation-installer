@@ -1,4 +1,4 @@
-FROM composer:2 as composer
+FROM composer:2 AS composer
 FROM php:8.2
 WORKDIR /srv/app
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer

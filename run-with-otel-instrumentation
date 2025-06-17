@@ -5,204 +5,170 @@
 // variables before running php application
 // everything what's needed for auto-instrumentation.
 
-$otel_traces_exporters = array(
-  "otlp",
-  "console",
-  "zipkin",
-  "none"
+$otel_exporters = array(
+    "otlp",
+    "console",
+    "none"
 );
 
-$otel_exporter_otlp_protocols = array(
-  "grpc",
-  "http/protobuf",
-  "http/json"
-);
-
-
-$otel_php_traces_procesors = array(
-  "batch",
-  "simple",
-  "noop",
-  "none"
-);
-
-function choose_element($elements, $default_index, $command_line):int {
-  $message = "Choose " . $command_line . " (1-" . count($elements) . ") [" . $default_index . "] : ";
-  $colorMessage = "\033[31m$message \033[0m";
-  $counter = 1;
-  foreach ($elements as $element) {
-    echo($counter . ") " . $element . "\n");
-    ++$counter;
-  }
-  echo "\n";
-  $element_index = count($elements) - 1;
-  do {
-    $element_index = intval(readline($colorMessage));
-    if ($element_index == 0) {
-      $element_index = $default_index;
-      break;
+function choose_element($elements, $default_index, $command_line): int
+{
+    $message = "Choose " . $command_line . " (1-" . count($elements) . ") [" . $default_index . "] : ";
+    $colorMessage = "\033[31m$message \033[0m";
+    $counter = 1;
+    foreach ($elements as $element) {
+        echo($counter . ") " . $element . "\n");
+        ++$counter;
     }
-  } while ($element_index < 1 || $element_index > count($elements)) ;
-  return $element_index - 1;
+    echo "\n";
+    do {
+        $element_index = intval(readline($colorMessage));
+        if ($element_index == 0) {
+            $element_index = $default_index;
+            break;
+        }
+    } while ($element_index < 1 || $element_index > count($elements));
+    return $element_index - 1;
 }
 
-function choose_otel_traces_exporter($exporters):int {
+function choose_otel_traces_exporter($exporters): int
+{
     return choose_element($exporters, 1, "trace exporter");
-  }
-  
-  function choose_otel_exporter_protocol($protocols):int {
-    return choose_element($protocols, 1, "protocol");
-  }
-  
-  function choose_otel_metrics_exporter($exporters):int {
-    return choose_element($exporters, 1, "metrics exporter");
-  }
+}
 
-  function choose_otel_logs_exporter($exporters): int {
+function choose_otel_metrics_exporter($exporters): int
+{
+    return choose_element($exporters, 1, "metrics exporter");
+}
+
+function choose_otel_logs_exporter($exporters): int
+{
     return choose_element($exporters, 1, "logs exporter");
-  }
-  
-  function choose_otel_php_traces_processor($traces_processors):int {
-    return choose_element($traces_processors, 1, "traces processor");
-  }
-  
-  function set_env($otel_traces_exporters,
-                   $otel_exporter_otlp_protocols,
-                   $otel_php_traces_procesors) {
-    $OTEL_PHP_AUTOLOAD_ENABLED = true;
+}
+
+function set_env($otel_exporters)
+{
     $message = "set OTEL_PHP_AUTOLOAD_ENABLED=[true]: ";
     $colorMessage = "\033[31m$message \033[0m";
-    $val = "";
     do {
-      $val = readline($colorMessage);
-      if ($val == "") {
-        $val = "true";
-        break;
-      }
+        $val = readline($colorMessage);
+        if ($val == "") {
+            $val = "true";
+            break;
+        }
     } while ($val != "true" && $val != "false");
-    putenv('OTEL_PHP_AUTOLOAD_ENABLED=' . $val);
-    echo "\n";    
-  
-    $exporter_index = choose_otel_traces_exporter($otel_traces_exporters);
-    putenv('OTEL_TRACES_EXPORTER=' . $otel_traces_exporters[$exporter_index]);
+    $OTEL_PHP_AUTOLOAD_ENABLED = $val;
+    putenv('OTEL_PHP_AUTOLOAD_ENABLED=' . $OTEL_PHP_AUTOLOAD_ENABLED);
     echo "\n";
 
-    $exporter_index = choose_otel_metrics_exporter($otel_traces_exporters);
-    putenv('OTEL_METRICS_EXPORTER=' . $otel_traces_exporters[$exporter_index]);
+    $exporter_index = choose_otel_traces_exporter($otel_exporters);
+    putenv('OTEL_TRACES_EXPORTER=' . $otel_exporters[$exporter_index]);
     echo "\n";
 
-    $exporter_index = choose_otel_logs_exporter($otel_traces_exporters);
-    putenv('OTEL_LOGS_EXPORTER=' . $otel_traces_exporters[$exporter_index]);
+    $exporter_index = choose_otel_metrics_exporter($otel_exporters);
+    putenv('OTEL_METRICS_EXPORTER=' . $otel_exporters[$exporter_index]);
     echo "\n";
-  
-    // $protocol_index = choose_otel_exporter_protocol($otel_exporter_otlp_protocols);
-    // putenv('OTEL_EXPORTER_OTLP_PROTOCOL=' . $otel_exporter_otlp_protocols[$protocol_index]);
-    // echo "\n";
-  
-    $OTEL_EXPORTER_OTLP_ENDPOINT = "https://otel.collector.na-01.cloud.solarwinds.com:443";
+
+    $exporter_index = choose_otel_logs_exporter($otel_exporters);
+    putenv('OTEL_LOGS_EXPORTER=' . $otel_exporters[$exporter_index]);
+    echo "\n";
+
+    $message = "set OTEL_LOG_LEVEL=[info]: ";
+    $colorMessage = "\033[31m$message \033[0m";
+
+    $val = readline($colorMessage);
+    if ($val == "") {
+        $val = "info";
+    }
+    $OTEL_LOG_LEVEL = $val;
+    putenv('OTEL_LOG_LEVEL=' . $OTEL_LOG_LEVEL);
+    echo "\n";
+
     $message = "set OTEL_EXPORTER_OTLP_ENDPOINT=[https://otel.collector.na-01.cloud.solarwinds.com:443]: ";
     $colorMessage = "\033[31m$message \033[0m";
 
     $val = readline($colorMessage);
     if ($val == "") {
-      $val = "https://otel.collector.na-01.cloud.solarwinds.com:443";
+        $val = "https://otel.collector.na-01.cloud.solarwinds.com:443";
     }
     $OTEL_EXPORTER_OTLP_ENDPOINT = $val;
     putenv('OTEL_EXPORTER_OTLP_ENDPOINT=' . $OTEL_EXPORTER_OTLP_ENDPOINT);
     echo "\n";
-  
-    $message = "set OTEL_EXPORTER_ZIPKIN_ENDPOINT=[http://localhost:9411/api/v2/spans]: ";
+
+    $message = "set SW_APM_COLLECTOR=[apm.collector.na-01.cloud.solarwinds.com]: ";
     $colorMessage = "\033[31m$message \033[0m";
-    $OTEL_EXPORTER_ZIPKIN_ENDPOINT = "http://localhost:9411/api/v2/spans";
+
     $val = readline($colorMessage);
     if ($val == "") {
-      $val = "http://localhost:9411/api/v2/spans";
+        $val = "apm.collector.na-01.cloud.solarwinds.com";
     }
-    $OTEL_EXPORTER_ZIPKIN_ENDPOINT = $val;
-    putenv('OTEL_EXPORTER_ZIPKIN_ENDPOINT=' . $OTEL_EXPORTER_ZIPKIN_ENDPOINT);
-    echo "\n";
-  
-    $php_traces_procesor_index = choose_otel_php_traces_processor($otel_php_traces_procesors);
-    putenv('OTEL_PHP_TRACES_PROCESSOR=' . $otel_php_traces_procesors[$php_traces_procesor_index]);
+    $SW_APM_COLLECTOR = $val;
+    putenv('SW_APM_COLLECTOR=' . $SW_APM_COLLECTOR);
     echo "\n";
 
-      $message = "set SW_APM_COLLECTOR=[apm.collector.na-01.cloud.solarwinds.com]: ";
-      $colorMessage = "\033[31m$message \033[0m";
+    $message = "set SW_APM_SERVICE_KEY=[token:name]: ";
+    $colorMessage = "\033[31m$message \033[0m";
 
-      $val = readline($colorMessage);
-      if ($val == "") {
-          $val = "apm.collector.na-01.cloud.solarwinds.com";
-      }
-      $SW_APM_COLLECTOR = $val;
-      putenv('SW_APM_COLLECTOR=' . $SW_APM_COLLECTOR);
-      echo "\n";
+    $val = readline($colorMessage);
+    if ($val == "") {
+        $val = "token:name";
+    }
+    $SW_APM_SERVICE_KEY = $val;
+    putenv('SW_APM_SERVICE_KEY=' . $SW_APM_SERVICE_KEY);
+    echo "\n";
 
-      $message = "set SW_APM_SERVICE_KEY=[token:name]: ";
-      $colorMessage = "\033[31m$message \033[0m";
+    $part = explode(":", $SW_APM_SERVICE_KEY);
+    if (count($part) != 2) {
+        echo "SW_APM_SERVICE_KEY must be in format 'token:name'!\n";
+        exit(1);
+    }
+    putenv('OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer ' . $part[0] . '"');
+    echo "\n";
 
-      $val = readline($colorMessage);
-      if ($val == "") {
-          $val = "token:name";
-      }
-      $SW_APM_SERVICE_KEY = $val;
-      putenv('SW_APM_SERVICE_KEY=' . $SW_APM_SERVICE_KEY);
-      echo "\n";
+    $message = "set OTEL_TRACES_SAMPLER=[solarwinds_http]: ";
+    $colorMessage = "\033[31m$message \033[0m";
 
-      $part = explode(":", $SW_APM_SERVICE_KEY);
-      if (count($part) != 2) {
-          echo "SW_APM_SERVICE_KEY must be in format 'token:name'!\n";
-          exit(1);
-      }
-      putenv('OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer ' . $part[0] . '"');
-      echo "\n";
+    $val = readline($colorMessage);
+    if ($val == "") {
+        $val = "solarwinds_http";
+    }
+    $OTEL_TRACES_SAMPLER = $val;
+    putenv('OTEL_TRACES_SAMPLER=' . $OTEL_TRACES_SAMPLER);
+    echo "\n";
 
-      $message = "set OTEL_TRACES_SAMPLER=[solarwinds_http]: ";
-      $colorMessage = "\033[31m$message \033[0m";
+    $message = "set OTEL_PROPAGATORS=[baggage,tracecontext,swotracestate,xtraceoptions]: ";
+    $colorMessage = "\033[31m$message \033[0m";
 
-      $val = readline($colorMessage);
-      if ($val == "") {
-          $val = "solarwinds_http";
-      }
-      $OTEL_TRACES_SAMPLER = $val;
-      putenv('OTEL_TRACES_SAMPLER=' . $OTEL_TRACES_SAMPLER);
-      echo "\n";
+    $val = readline($colorMessage);
+    if ($val == "") {
+        $val = "baggage,tracecontext,swotracestate,xtraceoptions";
+    }
+    $OTEL_PROPAGATORS = $val;
+    putenv('OTEL_PROPAGATORS=' . $OTEL_PROPAGATORS);
+    echo "\n";
 
-      $message = "set OTEL_PROPAGATORS=[baggage,tracecontext,swotracestate,xtraceoptions]: ";
-      $colorMessage = "\033[31m$message \033[0m";
-
-      $val = readline($colorMessage);
-      if ($val == "") {
-          $val = "baggage,tracecontext,swotracestate,xtraceoptions";
-      }
-      $OTEL_PROPAGATORS = $val;
-      putenv('OTEL_PROPAGATORS=' . $OTEL_PROPAGATORS);
-      echo "\n";
-  
-    $OTEL_SERVICE_NAME = "auto";
     $message = "set OTEL_SERVICE_NAME: ";
     $colorMessage = "\033[31m$message \033[0m";
 
     $val = readline($colorMessage);
     if ($val == "") {
-      $val = "auto";
-    } 
+        $val = "auto";
+    }
     $OTEL_SERVICE_NAME = $val;
     putenv('OTEL_SERVICE_NAME=' . $OTEL_SERVICE_NAME);
-  }
+}
 
-  set_env($otel_traces_exporters,
-  $otel_exporter_otlp_protocols,
-  $otel_php_traces_procesors);
+set_env($otel_exporters);
 
-  $command = "";
-  for ($i = 1; $i < $argc; $i++) {
+$command = "";
+for ($i = 1; $i < $argc; $i++) {
     if ($i > 1) {
         $command = $command . " ";
     }
-    $command = $command . $argv[$i];  
-  }
+    $command = $command . $argv[$i];
+}
 
-  if ($command != "") {
+if ($command != "") {
     echo $command . "\n";
     exec($command);
-  }
+}
