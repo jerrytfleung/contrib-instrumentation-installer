@@ -122,7 +122,8 @@ function set_env($otel_exporters)
         echo "SW_APM_SERVICE_KEY must be in format 'token:name'!\n";
         exit(1);
     }
-    putenv('OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer ' . $part[0] . '"');
+    $authorization = 'Authorization=Bearer '.$part[0];
+    putenv('OTEL_EXPORTER_OTLP_HEADERS=' . $authorization);
     echo "\n";
 
     $message = "set OTEL_TRACES_SAMPLER=[solarwinds_http]: ";
