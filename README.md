@@ -2,7 +2,9 @@
 
 This directory contains two scripts that helps install auto-instrumentation support and run application.
 
-First script `install-otel-instrumentation` will install all needed dependencies for auto-instrumentation. Second `run-with-otel-instrumentation` is responsible for setting few environment variables (that are needed to export traces into backend) and running application.
+First script `install-otel-instrumentation` will install all needed dependencies for auto-instrumentation. Second
+`run-with-otel-instrumentation` is responsible for setting few environment variables (that are needed to export traces
+into backend) and running application.
 
 Install script works in two modes:
 

@@ -1,7 +1,14 @@
 {
   "name": "jerrytfleung/opentelemetry-instrumentation-installer",
   "description": "OpenTelemetry auto-instrumentation installer",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "installer", "instrumentation"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "installer",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
