@@ -122,8 +122,11 @@ function set_env($otel_exporters)
         echo "SW_APM_SERVICE_KEY must be in format 'token:name'!\n";
         exit(1);
     }
-    $authorization = 'Authorization=Bearer '.$part[0];
+    $authorization = 'Authorization=Bearer ' . $part[0];
     putenv('OTEL_EXPORTER_OTLP_HEADERS=' . $authorization);
+    echo "\n";
+
+    putenv('OTEL_SERVICE_NAME=' . $part[1]);
     echo "\n";
 
     $message = "set OTEL_TRACES_SAMPLER=[solarwinds_http]: ";
@@ -147,16 +150,6 @@ function set_env($otel_exporters)
     $OTEL_PROPAGATORS = $val;
     putenv('OTEL_PROPAGATORS=' . $OTEL_PROPAGATORS);
     echo "\n";
-
-    $message = "set OTEL_SERVICE_NAME: ";
-    $colorMessage = "\033[31m$message \033[0m";
-
-    $val = readline($colorMessage);
-    if ($val == "") {
-        $val = "auto";
-    }
-    $OTEL_SERVICE_NAME = $val;
-    putenv('OTEL_SERVICE_NAME=' . $OTEL_SERVICE_NAME);
 }
 
 set_env($otel_exporters);
