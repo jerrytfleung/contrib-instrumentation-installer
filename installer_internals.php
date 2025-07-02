@@ -83,24 +83,27 @@ function check_args($argc, $argv): array
 
 function get_auto_packages(): array
 {
-    $auto_packages = "https://packagist.org/search.json?q=opentelemetry-auto";
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $auto_packages);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    $output = curl_exec($ch);
-    curl_close($ch);
-    $json = json_decode($output);
-    $results = $json->{"results"};
     $opentelemetry_auto_packages = array();
-    foreach ($results as $package) {
-        if ($package->name === 'open-telemetry/opentelemetry-instrumentation-installer') {
-            //do not install self
-            continue;
+    $ch = curl_init();
+    $json = array();
+    do {
+        $auto_packages = $json->{"next"} ?? "https://packagist.org/search.json?q=open-telemetry/opentelemetry-auto";
+        curl_setopt($ch, CURLOPT_URL, $auto_packages);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        $output = curl_exec($ch);
+        $json = json_decode($output);
+        $results = $json->{"results"};
+        foreach ($results as $package) {
+            if ($package->name === 'open-telemetry/opentelemetry-instrumentation-installer') {
+                //do not install self
+                continue;
+            }
+            array_push($opentelemetry_auto_packages, $package->name);
         }
-        array_push($opentelemetry_auto_packages, $package->name);
-    }
+    } while(property_exists($json,'next'));
+    curl_close($ch);
     return $opentelemetry_auto_packages;
 }
 
